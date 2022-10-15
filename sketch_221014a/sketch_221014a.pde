@@ -21,13 +21,12 @@ void setup(){
  size(1920, 1080); 
  HeGauge = loadImage("gauge.png");
 
- String input = Serial.list()[2]; //change the 0 to a 1 or 2 etc. to match your port
- port = new Serial(this, input, 115200);
+ port = new Serial(this, "COM7", 9600);
 }
 
 
 
-String input;
+String data;
 long He;
 long Lox;
 long CH4;
@@ -36,26 +35,39 @@ void draw(){
   
   if ( port.available() > 0) 
   {  // If data is available,
-  input = port.readStringUntil('\n');         // read it and store it in input
+  data = port.readStringUntil('\n');         // read it and store it in data
   } 
   
  
-//NULLPOINTEREXCEPTION AFTER RUNNING FOR A FEW SECONDS
+//Serial data is in the form "He, Lox, CH4"
+  println(data);
+if(data != null){
+  
+  //TODO:
+  // take input1, take input2
+  //compare them-> if same, we know we got good input
+  //we can then split it into values.
+  //if not same, input messed up, try again
+  
+  
+  
+  
+  String arr[] = data.split(",", 4);
+  He = Integer.parseInt(arr[0]);
+  Lox = Integer.parseInt(arr[1]);
+  CH4 = Integer.parseInt(arr[2]);
+  
   /*
-if(input.substring(0,3).equals("He:")){
-    
-  He = Integer.parseInt(input.substring(
-  3, 
-  input.indexOf(", Lox:")
-  ));
+  //print("Helium: ");
+  println(He);
+  //print("Lox: ");
+  println(Lox);
+  println(CH4);
+   */ 
   }
-*/
-  
-  println(input);
-  //println(He);
-  
-  
-  
+
+  //println("Helium Pressure: " + He);
+
   
   
   
