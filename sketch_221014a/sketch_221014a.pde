@@ -18,6 +18,7 @@ final float CH4_MAX = 600;
 
 PImage HeGauge; 
 PImage gaugeImg;
+PImage logo;
 
 
 //HE Gauge
@@ -44,7 +45,7 @@ void setup(){
   size(1920, 1080); 
   HeGauge = loadImage("gauge.png");      //*must make new gauges that cap out at 3000 and 600*
   gaugeImg = loadImage("gauge.png");
-
+  logo = loadImage("LELogo.png");
 
 }
 
@@ -52,26 +53,25 @@ void setup(){
 
 
 
-void draw(){
-  
-  
+void draw(){ 
   
   background(248, 240, 227);
-  
   fill(0, 0, 0);
   textSize(50);
   textAlign(CENTER);
   text("Lady Elizabeth", 960, 100);
+  
   textSize(35);
-  text("HE", HeX, HeY-225);
+  text("HE", HeX, HeY-225);       //He gauge
   image(HeGauge, HeX, HeY);
-  text("LOX", LoxX, LoxY-225);
+  
+  text("LOX", LoxX, LoxY-225);    //LOX gauge
   image(gaugeImg, LoxX, LoxY);
-  text("CH4", CH4X, CH4Y-225);
+  
+  text("CH4", CH4X, CH4Y-225);    //CH4 gauge
   image(gaugeImg, CH4X, CH4Y);
   
-  
-  
+  image(logo, 960, 800);
   
   
   if ( port.available() > 0) 
@@ -80,61 +80,38 @@ void draw(){
 
   } 
   
- 
-//Serial data is in the form "He, Lox, CH4"
-//This condition makes sure the input was read correctly
-if(data != null && data.substring(0, 3).equals("-1,") && data.length() > 8 && data.length() < 21){
-
+     
+  //Serial data is in the form "He, Lox, CH4"
+  //This condition makes sure the input was read correctly
+  if(data != null && data.substring(0, 3).equals("-1,") && data.length() > 8 && data.length() < 21){
   
+    
+    String arr[] = data.split(",", 5); //Split the input into array of strings
+    He = Integer.parseInt(arr[1]); //parse each element into an int
+    Lox = Integer.parseInt(arr[2]);
+    CH4 = Integer.parseInt(arr[3]);
+    
+    
+    println("");
+    println("New Iteration: ");
+    print("Helium: ");
+    println(He);
+    print("Lox: ");
+    println(Lox);
+    print("CH4: ");
+    println(CH4);
+     
+    
+    stroke(0);
+    strokeWeight(10);
+    float HeAngle = (He / HE_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
+    line(HeX, HeY,  HeX + sin(HeAngle) * HeRad,  HeY + cos(HeAngle) * HeRad); //line acts as gauge needle
+    
+    float LoxAngle = (Lox / LOX_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
+    line(LoxX, LoxY,  LoxX + sin(LoxAngle) * LoxRad,  LoxY + cos(LoxAngle) * LoxRad); //line acts as gauge needle
   
-  
-  
-  String arr[] = data.split(",", 5); //Split the input into array of strings
-  He = Integer.parseInt(arr[1]); //parse each element into an int
-  Lox = Integer.parseInt(arr[2]);
-  CH4 = Integer.parseInt(arr[3]);
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  println("");
-  println("New Iteration: ");
-  print("Helium: ");
-  println(He);
-  print("Lox: ");
-  println(Lox);
-  print("CH4: ");
-  println(CH4);
-   
-  
-
-
-  
-  
-  
-
-  
-  
-  
-  stroke(0);
-  strokeWeight(10);
-  float HeAngle = (He / HE_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
-  line(HeX, HeY,  HeX + sin(HeAngle) * HeRad,  HeY + cos(HeAngle) * HeRad); //line acts as gauge needle
-  
-  float LoxAngle = (Lox / LOX_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
-  line(LoxX, LoxY,  LoxX + sin(LoxAngle) * LoxRad,  LoxY + cos(LoxAngle) * LoxRad); //line acts as gauge needle
-
-  float CH4Angle = (CH4 / CH4_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
-  line(CH4X, CH4Y,  CH4X + sin(CH4Angle) * CH4Rad,  CH4Y + cos(CH4Angle) * CH4Rad); //line acts as gauge needle
-  
+    float CH4Angle = (CH4 / CH4_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
+    line(CH4X, CH4Y,  CH4X + sin(CH4Angle) * CH4Rad,  CH4Y + cos(CH4Angle) * CH4Rad); //line acts as gauge needle
+    
   }
 }
