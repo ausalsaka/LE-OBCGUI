@@ -16,6 +16,20 @@ final float HE_MAX = 3000;
 final float LOX_MAX = 600;
 final float CH4_MAX = 600;
 
+float mappedHe;
+float mappedLox;
+float mappedCH4;
+
+float LoxValve;
+float CH4Valve;
+
+int xPos = 1920/2;        // horizontal position of the graph
+int lastxPos = 1920/2;
+
+int lastheightHe = 0;      //height of the graph
+int lastheightLox = 0;
+int lastheightCH4 = 0;
+
 
 
 PImage HeGauge; 
@@ -75,6 +89,25 @@ void draw(){
   
   image(logo, 960, 800);
   
+  //draw the graph lines
+  stroke(252, 186, 3);
+  line(width/2, height, width/2, 0);
+  line(width/2, height/2, width, height/2);
+  strokeWeight(1);        //stroke smaller
+  stroke(225, 225, 225);
+  line(width/2, height/4, width, height/4);
+  line(width/2, 3*height/4, width, 3*height/4);
+  
+  //draw graph numbers
+  fill(225, 225, 225);
+  textSize(25);
+  text("600", width/2 - 40, 0 + 20);
+  text("300", width/2 - 40, height/4 + 20);
+  text("0", width/2 - 25, height/2);  //for top
+  text("3000", width/2 - 60, height/2 + 20);
+  text("1500", width/2 - 60, 3*height/4);
+  text("0", width/2 - 25, height);      //for bottom
+  
   
   if ( port.available() > 0) 
   {  // If data is available,
@@ -92,6 +125,22 @@ void draw(){
     He = Integer.parseInt(arr[2].substring(arr[2].indexOf(":")+1, arr[2].indexOf("."))); //parse each element into an int
     Lox = Integer.parseInt(arr[3].substring(arr[3].indexOf(":")+1, arr[3].indexOf(".")));
     CH4 = Integer.parseInt(arr[4].substring(arr[4].indexOf(":")+1, arr[4].indexOf(".")));
+
+
+
+   // at the edge of the window, go back to the beginning:
+    if (width < 300) {
+      xPos = 1920/2;
+      lastxPos = 1920/2;
+      background(0);  //Clear the screen.
+    } else if (xPos >= width) {
+      xPos = width/2;
+      lastxPos = width/2;
+      background(0);  //Clear the screen.
+    } else {
+      // increment the horizontal position:
+      xPos++;
+    }
     
     //Lox valve check
     if(arr[0].substring(arr[0].indexOf(":") + 1, arr[0].length()).equals("Closed")){
@@ -139,6 +188,20 @@ void draw(){
     if(vCH4) fill(0, 255,0);
     if(vCH4 != true) fill(255,0, 0);
     rect(CH4X - 50, CH4Y + 250, 100, 100);
+    
+    //Drawing a line from Last inByte to the new one.
+    stroke(127, 34, 255);     //stroke color
+    line(lastxPos, lastheightHe, xPos, height - mappedHe);  //line
+    stroke(4, 75, 127);     //stroke color
+    line(lastxPos, lastheightLox, xPos, height/2 - mappedLox);  //line
+    stroke(146, 45, 80);     //stroke color
+    line(lastxPos, lastheightCH4, xPos, height/2 - mappedCH4);  //line
+    
+    //resetting stuff
+    lastxPos = xPos;
+    lastheightHe = int(height-mappedHe);
+    lastheightLox = int(height/2-mappedLox);
+    lastheightCH4 = int(height/2-mappedCH4);
     
   }
 }
