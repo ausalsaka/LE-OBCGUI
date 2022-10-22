@@ -1,10 +1,6 @@
 import processing.serial.*;
-import processing.serial.*;
-
-
 
 Serial port;
-
 
 String data;
 boolean vLox = false;
@@ -16,26 +12,11 @@ final float HE_MAX = 3000;
 final float LOX_MAX = 600;
 final float CH4_MAX = 600;
 
-float mappedHe;
-float mappedLox;
-float mappedCH4;
-
-float LoxValve;
-float CH4Valve;
-
-int xPos = 1920/2;        // horizontal position of the graph
-int lastxPos = 1920/2;
-
-int lastheightHe = 0;      //height of the graph
-int lastheightLox = 0;
-int lastheightCH4 = 0;
-
-
-
 PImage HeGauge; 
 PImage gaugeImg;
 PImage logo;
 
+boolean runOnce = true;
 
 //HE Gauge
 int HeX = 960;     //X position
@@ -43,31 +24,41 @@ int HeY = 400;     //Y position
 int HeRad = 130;   //Length of the needle
 //Lox Gauge
 int LoxX = 400;
-int LoxY = 550;
+int LoxY = 400;
 int LoxRad = 130;
 //CH4 Gauge
 int CH4X = 1520;
-int CH4Y = 550;
+int CH4Y = 400;
 int CH4Rad = 130;
-  
 
+float mappedHe;            //mapped versions of the map
+float mappedLox;
+float mappedCH4;
 
+int lastheightHe = 0;      //height of the graph
+int lastheightLox = 0;
+int lastheightCH4 = 0;
 
-void setup(){
-  
-   port = new Serial(this, "COM6", 115200);  
+int LoxXPos = LoxX - 180;        // horizontal position of the graph
+int LoxLastxPos = LoxX - 180;
+int HeXPos = HeX - 180;
+int HeLastxPos = HeX - 180;
+int CH4XPos = HeX - 180;
+int CH4LastxPos = HeX - 180;
+
+void setup(){  
+  String portName = Serial.list()[4]; //change the 0 to a 1 or 2 etc. to match your port
+  port = new Serial(this, portName, 115200);  
   
   imageMode(CENTER);
-  size(1920, 1080); 
+  size(1376, 774); 
   HeGauge = loadImage("gauge.png");      //*must make new gauges that cap out at 3000 and 600*
   gaugeImg = loadImage("gauge.png");
   logo = loadImage("LELogo.png");
+  
+  surface.setResizable(true);      //making the screen window resizeable
 
 }
-
-
-
-
 
 void draw(){ 
   
@@ -87,61 +78,53 @@ void draw(){
   text("CH4", CH4X, CH4Y-225);    //CH4 gauge
   image(gaugeImg, CH4X, CH4Y);
   
-  image(logo, 960, 800);
+  image(logo, 130, 130);
   
   //draw the graph lines
-  stroke(252, 186, 3);
-  line(width/2, height, width/2, 0);
-  line(width/2, height/2, width, height/2);
+  fill(248, 240, 227);
+  stroke(0, 0, 0);
+  strokeWeight(4);        //stroke bigger
+  rect(LoxX - 180, 3*height/4 - 120, 350, 350);                                                  //drawing the three rectangles
+  rect(HeX - 180, 3*height/4 - 120, 350, 350);
+  rect(CH4X - 180, 3*height/4 - 120, 350, 350);
   strokeWeight(1);        //stroke smaller
-  stroke(225, 225, 225);
-  line(width/2, height/4, width, height/4);
-  line(width/2, 3*height/4, width, 3*height/4);
+  line(LoxX - 180, 3*height/4 - 120 + 350/2, LoxX - 180 + 350, 3*height/4 - 120 + 350/2);        //drawing halfwaypoint lines
+  line(HeX - 180, 3*height/4 - 120 + 350/2, HeX - 180 + 350, 3*height/4 - 120 + 350/2);
+  line(CH4X - 180, 3*height/4 - 120 + 350/2, CH4X - 180 + 350, 3*height/4 - 120 + 350/2);
   
   //draw graph numbers
-  fill(225, 225, 225);
+  fill(0, 0, 0);
   textSize(25);
-  text("600", width/2 - 40, 0 + 20);
-  text("300", width/2 - 40, height/4 + 20);
-  text("0", width/2 - 25, height/2);  //for top
-  text("3000", width/2 - 60, height/2 + 20);
-  text("1500", width/2 - 60, 3*height/4);
-  text("0", width/2 - 25, height);      //for bottom
-  
+  textAlign(RIGHT);
+  text("600", LoxX - 180, 3*height/4 - 120);              //for lox
+  text("300", LoxX - 180, 3*height/4 - 120 + 350/2);
+  text("0", LoxX - 180, 3*height/4 - 120 + 350);
+  text("3000", HeX - 180, 3*height/4 - 120);              //for he
+  text("1500", HeX - 180, 3*height/4 - 120 + 350/2);
+  text("0", HeX - 180, 3*height/4 - 120 + 350);
+  text("600", CH4X - 180, 3*height/4 - 120);              //for CH4
+  text("300", CH4X - 180, 3*height/4 - 120 + 350/2);
+  text("0", CH4X - 180, 3*height/4 - 120 + 350);
   
   if ( port.available() > 0) 
   {  // If data is available,
   data = port.readStringUntil('\n');         // read it and store it in data
 
-  } 
+  }
   
-     
   //Serial data is in the form "He, Lox, CH4"
   //This condition makes sure the input was read correctly
   if(data != null && data.length() > 69 && data.length() < 95){
-  
-         println(data);
+    System.out.println(data);
     String arr[] = data.split(",", 5); //Split the input into array of strings
     He = Integer.parseInt(arr[2].substring(arr[2].indexOf(":")+1, arr[2].indexOf("."))); //parse each element into an int
     Lox = Integer.parseInt(arr[3].substring(arr[3].indexOf(":")+1, arr[3].indexOf(".")));
     CH4 = Integer.parseInt(arr[4].substring(arr[4].indexOf(":")+1, arr[4].indexOf(".")));
-
-
-
-   // at the edge of the window, go back to the beginning:
-    if (width < 300) {
-      xPos = 1920/2;
-      lastxPos = 1920/2;
-      background(0);  //Clear the screen.
-    } else if (xPos >= width) {
-      xPos = width/2;
-      lastxPos = width/2;
-      background(0);  //Clear the screen.
-    } else {
-      // increment the horizontal position:
-      xPos++;
-    }
     
+    mappedLox = map(Lox, 0, 600, 0, 350);    //map he, lox, and ch4 to the graph height.
+    mappedHe = map(He, 0, 3000, 0, 350);
+    mappedCH4 = map(CH4, 0, 600, 0, 350);
+ 
     //Lox valve check
     if(arr[0].substring(arr[0].indexOf(":") + 1, arr[0].length()).equals("Closed")){
       vLox = false;
@@ -155,19 +138,17 @@ void draw(){
     }else{
       vCH4 = true;
     }
-     
     
     println(vLox);
     
-    println("");
-    println("New Iteration: ");
-    print("Helium: ");
-    println(He);
-    print("Lox: ");
-    println(Lox);
-    print("CH4: ");
-    println(CH4);
-     
+    System.out.println("");
+    System.out.println("New Iteration: ");
+    System.out.print("Helium: ");
+    System.out.println(He);
+    System.out.print("Lox: ");
+    System.out.println(Lox);
+    System.out.print("CH4: ");
+    System.out.println(CH4);
     
     stroke(0);
     strokeWeight(10);
@@ -190,18 +171,51 @@ void draw(){
     rect(CH4X - 50, CH4Y + 250, 100, 100);
     
     //Drawing a line from Last inByte to the new one.
-    stroke(127, 34, 255);     //stroke color
-    line(lastxPos, lastheightHe, xPos, height - mappedHe);  //line
     stroke(4, 75, 127);     //stroke color
-    line(lastxPos, lastheightLox, xPos, height/2 - mappedLox);  //line
+    line(LoxLastxPos, lastheightLox, LoxXPos, 3*height/4 - 120 - mappedLox);  //line
+    stroke(127, 34, 255);     //stroke color
+    line(HeLastxPos, lastheightHe, HeXPos, 3*height/4 - 120 - mappedHe);  //line
     stroke(146, 45, 80);     //stroke color
-    line(lastxPos, lastheightCH4, xPos, height/2 - mappedCH4);  //line
+    line(CH4LastxPos, lastheightCH4, CH4XPos, 3*height/4 - 120 - mappedCH4);  //line
     
     //resetting stuff
-    lastxPos = xPos;
-    lastheightHe = int(height-mappedHe);
-    lastheightLox = int(height/2-mappedLox);
-    lastheightCH4 = int(height/2-mappedCH4);
+    LoxLastxPos = LoxXPos;
+    HeLastxPos = HeXPos;
+    CH4LastxPos = CH4XPos;
+    lastheightLox = int(3*height/4 - 120 - mappedLox);
+    lastheightHe = int(3*height/4 - 120 - mappedHe);
+    lastheightCH4 = int(3*height/4 - 120 - mappedCH4);
     
+    // at the edge of the window, go back to the beginning:
+    if (LoxXPos >= LoxX - 180 + 350) {      //Lox
+      LoxXPos = LoxX - 180;
+      LoxLastxPos = LoxX - 180;
+      background(0);                        //Clear the screen.
+    } else {
+      LoxXPos++;                            //increment the horizontal position:
+    }
+    if (HeXPos >= HeX - 180 + 350) {        //Hellium
+      HeXPos = HeX - 180;
+      HeLastxPos = HeX - 180;
+      background(0);                        //Clear the screen.
+    } else {
+      HeXPos++;                             //increment the horizontal position:
+    }
+    if (CH4XPos >= CH4X - 180 + 350) {      //CH4
+      CH4XPos = CH4X - 180;
+      CH4LastxPos = CH4X - 180;
+      background(0);                        //Clear the screen.
+    } else {
+      CH4XPos++;                            //increment the horizontal position:
+    }
+    
+  }
+  
+  //just to set the window to maximized
+  if (runOnce) {
+    javax.swing.JFrame jframe = (javax.swing.JFrame)((processing.awt.PSurfaceAWT.SmoothCanvas)getSurface().getNative()).getFrame();
+    runOnce = false;
+    jframe.setLocation(0, 0);
+    jframe.setExtendedState(jframe.getExtendedState() | jframe.MAXIMIZED_BOTH);
   }
 }
