@@ -1,13 +1,13 @@
-long He;
-long Lox;
-long CH4;
-long Engine;
+double He;
+double Lox;
+double CH4;
+double Engine;
 bool flipHe;
 bool flipLox;
 bool flipCH4;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(1000);
 
   He = 1500;
@@ -26,7 +26,7 @@ void loop() {
   if(flipHe){
     He-=50;
   } else {He+=50;}
-   switch(He){
+   switch((int)He){
     case 0:
     case 3000:
       flipHe = !flipHe;
@@ -35,7 +35,7 @@ void loop() {
     if(flipLox){
     Lox-=20;
   } else {Lox+=20;}
-   switch(Lox){
+   switch((int)Lox){
     case 0:
     case 600:
       flipLox = !flipLox;
@@ -44,30 +44,45 @@ void loop() {
     if(flipCH4){
     CH4-=20;
   } else {CH4+=20;}
-   switch(CH4){
+   switch((int)CH4){
     case 0:
     case 600:
       flipCH4 = !flipCH4;
    }
 
 
+   String clopen = "Closed";
+   if((int)CH4 % 2 > 0){
+     if(clopen.equals("Closed")) {
+      clopen = "Open";
+     }else{
+       clopen = "Closed";
+     } 
+   }
 
-  String info = "-1,";
+
+
+  String info = "hall1:";
+  info.concat(clopen);
+  info.concat(",");
+  info.concat("hall2:");
+  info.concat(clopen);
+  info.concat(",");
+  info.concat("Helium:");
   info.concat(He);
   info.concat(",");
-  //info.concat("Lox:");
+  info.concat("Lox:");
   info.concat(Lox);
   info.concat(",");
-  //info.concat("Ch4:");
+  info.concat("Ch4:");
   info.concat(CH4);
   info.concat(",");
-  info.concat("-1");
+
 
 
 
 Serial.println(info);
-Serial.println(info);
-Serial.println(info);
+
 //delay(7);
                                 
 }
