@@ -56,7 +56,7 @@ void setup(){
   gaugeImg = loadImage("gauge600.png");
   logo = loadImage("LELogo.png");
   
-  //surface.setResizable(true);      //making the screen window resizeable
+  surface.setResizable(true);      //making the screen window resizeable
 
 }
 
