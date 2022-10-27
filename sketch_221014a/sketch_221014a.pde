@@ -2,6 +2,13 @@ import processing.serial.*;
 
 Serial port;
 
+//frequently changed variables
+String comPort = "COM6";
+
+
+
+
+
 String data;
 boolean vLox = false;
 boolean vCH4 = false;
@@ -54,7 +61,7 @@ int n = 0;
 
 void setup(){  
 
-  port = new Serial(this, "COM6", 115200);  
+  port = new Serial(this, comPort, 115200);  
   
   imageMode(CENTER);
   size(1920, 1080); 
@@ -62,13 +69,20 @@ void setup(){
   gaugeImg = loadImage("gauge600.png");
   logo = loadImage("LELogo.png");
   
+  background(248, 240, 227);
   //surface.setResizable(true);      //making the screen window resizeable
 
 }
 
+//text display should be int, text should be right justified.
+
+
 void draw(){ 
   tint(255, 255);
-  background(248, 240, 227);
+  //background(248, 240, 227);
+  fill(248, 240, 227);
+  stroke(248, 240, 227);
+  rect(0, 0, width, LoxY + 275);
   fill(0, 0, 0);
   textSize(50);
   textAlign(CENTER);
@@ -90,6 +104,7 @@ void draw(){
   fill(248, 240, 227);
   stroke(0, 0, 0);
   strokeWeight(4);        //stroke bigger
+  noFill();
   rect(LoxX - 180, 3*height/4 - 120, 350, 350);                                                  //drawing the three rectangles
   rect(HeX - 180, 3*height/4 - 120, 350, 350);
   rect(CH4X - 180, 3*height/4 - 120, 350, 350);
@@ -116,10 +131,14 @@ void draw(){
   text("0", CH4X - 200, 3*height/4 - 120 + 350);
   
   textSize(40);
-  textAlign(CENTER);
-  text(He, HeX, HeY+250);
-  text(Lox, LoxX, LoxY + 250);
-  text(CH4, CH4X, CH4Y + 250);
+  textAlign(RIGHT);
+  text((int)He, HeX, HeY+250);
+  text((int)Lox, LoxX, LoxY + 250);
+  text((int)CH4, CH4X, CH4Y + 250);
+  textAlign(LEFT);
+  text("PSI", HeX + 10, HeY + 250);
+  text("PSI", CH4X + 10, CH4Y + 250);
+  text("PSI", LoxX + 10, LoxY + 250);
   
   if ( port.available() > 0) 
   {  // If data is available,
@@ -130,8 +149,6 @@ void draw(){
   //Serial data is in the form "He, Lox, CH4"
   //This condition makes sure the input was read correctly
   if(data != null && data.length() > 69 && data.length() < 95){ //for rocket, these numbers should be 69 and 95
-  
-    
     System.out.println(data);
     String arr[] = data.split(",", 5); //Split the input into array of strings
     for(int i = 0; i < 5; i++)println(arr[i]);
@@ -140,15 +157,16 @@ void draw(){
     int tempCH4 = Integer.parseInt(arr[4].substring(arr[4].indexOf(":")+1, arr[4].indexOf(".")));
     
     //finding the average of the code
-    if (n < 100) {
+    int samplesPerAverage = 20;
+    if (n < samplesPerAverage) {
       totalHe += tempHe;
       totalLox += tempLox;
       totalCH4 += tempCH4;
       n++;
     } else {
-      He = totalHe/100;
-      Lox = totalLox/100;
-      CH4 = totalCH4/100;
+      He = totalHe/samplesPerAverage;
+      Lox = totalLox/samplesPerAverage;
+      CH4 = totalCH4/samplesPerAverage;
       
       totalHe = 0;
       totalLox = 0;
@@ -206,7 +224,7 @@ void draw(){
     if(vCH4 != true) fill(255,0, 0);
     rect(CH4X-25, CH4Y + 40, 50, 50);
     
-    strokeWeight(10);
+    strokeWeight(5);
     //Drawing a line from Last inByte to the new one.
     stroke(4, 75, 127);     //stroke color
     line(LoxLastxPos, (float)lastheightLox+350, LoxXPos, 3*height/4 - 120 - mappedLox+350);  //line
@@ -227,25 +245,31 @@ void draw(){
     if (LoxXPos >= LoxX - 180 + 350) {      //Lox
       LoxXPos = LoxX - 180;
       LoxLastxPos = LoxX - 180;
+      fill(248, 240, 227);
+      rect(LoxX - 180, 3*height/4 - 120, 350, 350);
     } else {
       LoxXPos+=0.5;                            //increment the horizontal position:
     }
     if (HeXPos >= HeX - 180 + 350) {        //Helium
       HeXPos = HeX - 180;
       HeLastxPos = HeX - 180;
+      fill(248, 240, 227);
+      rect(HeX - 180, 3*height/4 - 120, 350, 350);
     } else {
       HeXPos+= 0.5;                             //increment the horizontal position:
     }
     if (CH4XPos >= CH4X - 180 + 350) {      //CH4
       CH4XPos = CH4X - 180;
       CH4LastxPos = CH4X - 180;
+      fill(248, 240, 227);
+      rect(CH4X - 180, 3*height/4 - 120, 350, 350);
     } else {
       CH4XPos+=0.5;                            //increment the horizontal position:
     }
     tint(255, 64);
     //image(logo, HeX, HeY+100);
   }
-  else{
+  else{ // this else statement draws the last known value if an incorrectly read value is recieved. -this helps minimize chopiness of the needle
     stroke(0);
     strokeWeight(10);
     float HeAngle = (He / HE_MAX) * ((float)Math.PI * (-6.0/4.0)) + ((float)Math.PI * (7.0/4.0)); //This converts pressure reading into gauge angle 
