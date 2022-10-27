@@ -25,7 +25,7 @@ void loop() {
 
   if(flipHe){
     He-=50;
-  } else {He+=50;}
+  } else {He+=10;}
    switch((int)He){
     case 0:
     case 3000:
@@ -33,8 +33,8 @@ void loop() {
    }
 
     if(flipLox){
-    Lox-=20;
-  } else {Lox+=20;}
+    Lox-=50;
+  } else {Lox+=6;}
    switch((int)Lox){
     case 0:
     case 600:
@@ -42,8 +42,8 @@ void loop() {
    }
 
     if(flipCH4){
-    CH4-=20;
-  } else {CH4+=20;}
+    CH4-=50;
+  } else {CH4+=1;}
    switch((int)CH4){
     case 0:
     case 600:
@@ -52,7 +52,7 @@ void loop() {
 
 
    String clopen = "Closed";
-   if((int)CH4 % 2 > 0){
+   if((int)random(100)> 95){
      if(clopen.equals("Closed")) {
       clopen = "Open";
      }else{
