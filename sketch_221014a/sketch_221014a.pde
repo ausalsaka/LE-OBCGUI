@@ -3,8 +3,9 @@ import processing.serial.*;
 Serial port;
 
 //frequently changed variables
-String comPort = "COM6";
-
+String comPort = "COM5";
+int inParam1 = 50;
+int inParam2 = 95;
 
 
 
@@ -147,7 +148,7 @@ void draw(){
   
   //Serial data is in the form "He, Lox, CH4"
   //This condition makes sure the input was read correctly
-  if(data != null && data.length() > 69 && data.length() < 95){ //for rocket, these numbers should be 69 and 95
+  if(data != null && data.length() > inParam1 && data.length() < inParam2){ //for rocket, these numbers should be 69 and 95
     System.out.println(data);
     String arr[] = data.split(",", 5); //Split the input into array of strings
     for(int i = 0; i < 5; i++)println(arr[i]);
